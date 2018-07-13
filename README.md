@@ -4,7 +4,7 @@ Dampened weighted least squares (DWLS) is an estimation method for gene expressi
 
 DWLS is written in the R programming language.  To apply DWLS to any RNA-seq data set, please refer to the manual, **Manual.pdf**.  This includes code to run DWLS on a simple intestinal stem cell example.
 
-This project includes a script containing the core functions and packages, under the **Deconvolution_functions.R**, as well as three applications of DWLS to various data sets.  These are each contained in a separate folder, and include:
+This project includes a script containing the core functions and packages, under **Deconvolution_functions.R**, as well as three applications of DWLS to various data sets.  These are each contained in a separate folder, and include:
  
  - **Simulation_Schelker**: This application uses data from a previous deconvolution analysis by Schelker et al. [1], where bulk data is simulated by adding together gene expression profiles from single-cell data derived from human donor peripheral blood mononuclear cells (PBMCs), tumor-derived melanoma patient samples, and ovarian cancer ascites samples. A total of 27 patient-specific simulated bulk data sets are deconvolved using a gene expression signature generated from the combined single-cell data.
  
