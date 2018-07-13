@@ -1,5 +1,5 @@
 ####read in all data
-setwd("/Users/Daphne/Documents/Yuan/Deconvolution/Deconvolution_Github/Schelker_et_al.")
+setwd("/Users/Daphne/Documents/Yuan/Deconvolution/Deconvolution_Github/Simulation_Schelker")
 
 #load packages and functions
 source("../Deconvolution_Functions.R")
