@@ -160,17 +160,19 @@ solveSVR<-function(S,B){
   return(coef/sum(coef))
 }
 
+#perform DE analysis using Seurat
 DEAnalysis<-function(scdata,id,path){
   exprObj<-CreateSeuratObject(raw.data=as.data.frame(scdata), project = "DE")
   exprObj2<-SetIdent(exprObj,ident.use=as.vector(id))
   print("Calculating differentially expressed genes:")
   for (i in unique(id)){
     de_group <- FindMarkers(object=exprObj2, ident.1 = i, ident.2 = NULL, 
-                             only.pos = TRUE, test.use = "MAST")
+                             only.pos = TRUE, test.use = "bimod")
     save(de_group,file=paste(path,"/de_",i,".RData",sep=""))
   }
 }
 
+#build signature matrix using genes identified by DEAnalysis()
 buildSignatureMatrixUsingSeurat<-function(scdata,id,path,diff.cutoff=0.5,pval.cutoff=0.01){
   
   #perform differential expression analysis
@@ -237,7 +239,7 @@ buildSignatureMatrixUsingSeurat<-function(scdata,id,path,diff.cutoff=0.5,pval.cu
   return(Sig)
 }
 
-#alternative differential expression method using MAST
+##alternative differential expression method using MAST
 
 #functions for DE
 
@@ -275,6 +277,7 @@ m.auc=function(data.m,group.v) {
   
 }  
 
+#perform DE analysis using MAST	    
 DEAnalysisMAST<-function(scdata,id,path){
   
   pseudo.count = 0.1
@@ -302,31 +305,21 @@ DEAnalysisMAST<-function(scdata,id,path){
       log2fold_change        = cbind(genes.list, DE$log2_fc)
       colnames(log2fold_change) = c("gene.name", "log2fold_change")
       counts  = as.data.frame(cbind( data.1[genes.list,], data.2[genes.list,] ))
-      #groups  = c(rep(rare.cluster, length(cells.coord.list1) ), rep(paste("non_", rare.cluster, sep=""), length(cells.coord.list2) ) )
-      #groups  = c(rep("Cluster_1", length(cells.coord.list1) ), rep(rare.cluster, length(cells.coord.list2) ) )
       groups  = c(rep("Cluster_Other", length(cells.coord.list1) ), rep(i, length(cells.coord.list2) ) )
       groups  = as.character(groups)
       data_for_MIST <- as.data.frame(cbind(rep(rownames(counts), dim(counts)[2]), melt(counts),rep(groups, each = dim(counts)[1]), rep(1, dim(counts)[1] * dim(counts)[2]) ))
       colnames(data_for_MIST) = c("Gene", "Subject.ID", "Et", "Population", "Number.of.Cells")
       vbeta = data_for_MIST
-      #vbeta.fa <- FluidigmAssay(vbeta, idvars=c("Subject.ID"),
-      #                          primerid='Gene', measurement='Et', ncells='Number.of.Cells',
-      #                          geneid="Gene",  cellvars=c('Number.of.Cells', 'Population'),
-      #                          phenovars=c('Population'), id='vbeta all')
       vbeta.fa <-FromFlatDF(vbeta, idvars=c("Subject.ID"),
                             primerid='Gene', measurement='Et', ncells='Number.of.Cells',
                             geneid="Gene",  cellvars=c('Number.of.Cells', 'Population'),
                             phenovars=c('Population'), id='vbeta all')
-      #vbeta.1 <- subset(vbeta.fa,ncells==1)
       vbeta.1 <- subset(vbeta.fa,Number.of.Cells==1)
       # .3 MAST 
-      #layername(vbeta.1)
       head(colData(vbeta.1))
       zlm.output <- zlm.SingleCellAssay(~ Population, vbeta.1, method='bayesglm', ebayes=TRUE)
       show(zlm.output)
       coefAndCI <- summary(zlm.output, logFC=TRUE)
-      #coefAndCI <- coefAndCI[contrast != '(Intercept)',]
-      #coefAndCI[,contrast:=abbreviate(contrast)]
       zlm.lr <- lrTest(zlm.output, 'Population')
       zlm.lr_pvalue <- melt(zlm.lr[,,'Pr(>Chisq)'])
       zlm.lr_pvalue <- zlm.lr_pvalue[which(zlm.lr_pvalue$test.type == 'hurdle'),]
@@ -334,7 +327,6 @@ DEAnalysisMAST<-function(scdata,id,path){
       
       
       lrTest.table <-  merge(zlm.lr_pvalue, DE, by.x = "primerid", by.y = "row.names")
-      #colnames(lrTest.table) <- c("Gene", "test.type", "p_value", paste("log2.mean.", "Cluster_1", sep=""), paste("log2.mean.",rare.cluster,sep=""), "log2fold_change", "Auc")
       colnames(lrTest.table) <- c("Gene", "test.type", "p_value", paste("log2.mean.", "Cluster_Other", sep=""), paste("log2.mean.",i,sep=""), "log2fold_change", "Auc")
       cluster_lrTest.table <- lrTest.table[rev(order(lrTest.table$Auc)),]
       
@@ -345,6 +337,7 @@ DEAnalysisMAST<-function(scdata,id,path){
   }
 }
 
+#build signature matrix using genes identified by DEAnalysisMAST()
 buildSignatureMatrixMAST<-function(scdata,id,path,diff.cutoff=0.5,pval.cutoff=0.01){
   #compute differentially expressed genes for each cell type
   DEAnalysisMAST(scdata,id,path)
@@ -372,7 +365,6 @@ buildSignatureMatrixMAST<-function(scdata,id,path,diff.cutoff=0.5,pval.cutoff=0.
     Genes<-c()
     j=1
     for (i in unique(id)){
-      #if(file.exists(paste(i,seed,experiment,"_MIST.RData", sep=""))){
       if(numberofGenes[j]>0){
       temp<-paste("cluster_lrTest.table.",i,sep="")
       temp<-as.name(temp)
@@ -396,7 +388,6 @@ buildSignatureMatrixMAST<-function(scdata,id,path,diff.cutoff=0.5,pval.cutoff=0.
   Genes<-c()
   j=1
   for (i in unique(id)){
-    #if(file.exists(paste(i,seed,experiment,"_MIST.RData", sep=""))){
     if(numberofGenes[j]>0){
     temp<-paste("cluster_lrTest.table.",i,sep="")
     temp<-as.name(temp)
