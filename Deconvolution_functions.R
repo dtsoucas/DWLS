@@ -254,7 +254,7 @@ stat.log2=function(data.m, group.v, pseudo.count){
   colnames(log2.mean.r) <- paste("mean.group",log2.mean.r[1,], sep="")
   log2.mean.r = log2.mean.r[-1,]
   log2.mean.r = as.data.frame(log2.mean.r)
-  log2.mean.r = unfactor(log2.mean.r)  #from varhandle
+  log2.mean.r = varhandle::unfactor(log2.mean.r)  #from varhandle
   log2.mean.r[,1] = as.numeric(log2.mean.r[,1])
   log2.mean.r[,2] = as.numeric(log2.mean.r[,2])
   log2_foldchange = log2.mean.r$mean.group1-log2.mean.r$mean.group0
@@ -317,7 +317,7 @@ DEAnalysisMAST<-function(scdata,id,path){
       vbeta.1 <- subset(vbeta.fa,Number.of.Cells==1)
       # .3 MAST 
       head(colData(vbeta.1))
-      zlm.output <- zlm.SingleCellAssay(~ Population, vbeta.1, method='bayesglm', ebayes=TRUE)
+      zlm.output <- zlm(~ Population, vbeta.1, method='bayesglm', ebayes=TRUE)
       show(zlm.output)
       coefAndCI <- summary(zlm.output, logFC=TRUE)
       zlm.lr <- lrTest(zlm.output, 'Population')
@@ -370,7 +370,7 @@ buildSignatureMatrixMAST<-function(scdata,id,path,diff.cutoff=0.5,pval.cutoff=0.
       temp<-as.name(temp)
       temp<-eval(parse(text = temp))
       temp<-temp[order(temp$log2fold_change,decreasing=TRUE),]
-      Genes<-c(Genes,unfactor(temp$Gene[1:min(G,numberofGenes[j])]))
+      Genes<-c(Genes,varhandle::unfactor(temp$Gene[1:min(G,numberofGenes[j])]))
       }
       j=j+1
     }
@@ -393,7 +393,7 @@ buildSignatureMatrixMAST<-function(scdata,id,path,diff.cutoff=0.5,pval.cutoff=0.
     temp<-as.name(temp)
     temp<-eval(parse(text = temp))
     temp<-temp[order(temp$log2fold_change,decreasing=TRUE),]
-    Genes<-c(Genes,unfactor(temp$Gene[1:min(G,numberofGenes[j])]))
+    Genes<-c(Genes,varhandle::unfactor(temp$Gene[1:min(G,numberofGenes[j])]))
     }
     j=j+1
   }
